@@ -12,8 +12,14 @@ var port = process.env.PORT || 8080  // establecemos nuestro puerto
 
 
 app.get('/posts', function (req, res) {
-	res.json({ mensaje: '¡Funciona!', data: db.posts})
-})
+	try {
+		let rawData = fs.readFileSync('./db.json');
+		let data = JSON.parse(rawData);
+		res.json({ data: data.posts.reverse()});
+	} catch (error) {
+		res.json({message: error});
+	}
+});
 
 app.post('/posts', function (req, res) {
 	try {
@@ -37,7 +43,7 @@ app.post('/posts', function (req, res) {
 		console.log(error)
 		res.json({mensaje: 'Ocurrio un error al escribir en la base de datos', err: error});
 	}
-})
+});
 
 // iniciamos nuestro servidor
 app.listen(port)
