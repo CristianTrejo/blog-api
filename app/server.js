@@ -1,5 +1,5 @@
 var express = require('express') //llamamos a Express
-var bodyParser  = require('body-parser');
+var bodyParser = require('body-parser');
 var app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -11,18 +11,22 @@ var moment = require("moment");
 var port = process.env.PORT || 8080  // establecemos nuestro puerto
 
 
-app.get('/posts', function (req, res) {
+/* A function that is called when the user makes a GET request to the /posts endpoint. */
+app.get('/posts', (req, res) => {
 	try {
+		/* Reading the file db.json and returning the data in the file. */
 		let rawData = fs.readFileSync('./db.json');
 		let data = JSON.parse(rawData);
-		res.json({ data: data.posts.reverse()});
+		res.json({ data: data.posts.reverse() });
 	} catch (error) {
-		res.json({message: error});
+		res.json({ message: error });
 	}
 });
 
-app.post('/posts', function (req, res) {
+/* A function that is called when the user makes a POST request to the /posts endpoint. */
+app.post('/posts', (req, res) => {
 	try {
+		/* Creating a new post object and pushing it to the posts array in the db.json file. */
 		let newData = db;
 		var message = '';
 		let post = {
@@ -31,17 +35,30 @@ app.post('/posts', function (req, res) {
 			createdAt: moment()
 		};
 		newData.posts.push(post);
-		fs.writeFile('./db.json', JSON.stringify(newData), 'utf8', function (err) {
-			if(err) {
-				console.log(err)
-				throw {mmessage: err}
+		/* Writing to the file db.json. */
+		fs.writeFile('./db.json', JSON.stringify(newData), 'utf8', (err) => {
+			if (err) {
+				console.log(err);
+				throw { mmessage: err };
 			};
-			message = 'Post  guardado con exito'
-			res.json({ mensaje: message, data: post});
+			message = 'Post  guardado con exito';
+			res.json({ mensaje: message, data: post });
 		});
 	} catch (error) {
-		console.log(error)
-		res.json({mensaje: 'Ocurrio un error al escribir en la base de datos', err: error});
+		console.log(error);
+		res.json({ mensaje: 'Ocurrio un error al escribir en la base de datos', err: error });
+	}
+});
+
+app.put('/posts/:id', (req, res) => {
+	try {
+		/* Reading the file db.json and returning the data in the file. */
+		let rawData = fs.readFileSync('./db.json');
+		let data = JSON.parse(rawData);
+		let post = data.find(item => item.id === req.params.id);
+		res.json({ data: post });
+	} catch (error) {
+		res.json({ message: error });
 	}
 });
 
