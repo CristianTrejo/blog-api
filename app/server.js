@@ -23,6 +23,17 @@ app.get('/posts', (req, res) => {
 	}
 });
 
+app.get('/posts/:id', (req, res) => {
+	try {
+		/* Reading the file db.json and returning the data in the file. */
+		let rawData = fs.readFileSync('./db.json');
+		let data = JSON.parse(rawData);
+		res.json({ data: data.posts.find(item => item.id === req.params.id) });
+	} catch (error) {
+		res.json({ message: error });
+	}
+});
+
 /* A function that is called when the user makes a POST request to the /posts endpoint. */
 app.post('/posts', (req, res) => {
 	try {
@@ -55,8 +66,33 @@ app.put('/posts/:id', (req, res) => {
 		/* Reading the file db.json and returning the data in the file. */
 		let rawData = fs.readFileSync('./db.json');
 		let data = JSON.parse(rawData);
-		let post = data.find(item => item.id === req.params.id);
-		res.json({ data: post });
+		/* Finding the post with the id that is passed in the url and then updating the title, text and image
+		with the data that is passed in the body of the request. */
+		let post = data.posts.find(item => item.id === req.params.id);
+		post = {
+			...post,
+			title: req.body.title,
+			text: req.body.text,
+			image: req.body.image,
+		}
+		/* Updating the post with the id that is passed in the url. */
+		data.posts.map(item => {
+			if(item.id === post.id) {
+				item.title = post.title;
+				item.image = post.image;
+				item.text = post.text;
+			}
+			return item
+		})
+		/* Writing to the file db.json. */
+		fs.writeFile('./db.json', JSON.stringify(data), 'utf8', (err) => {
+			if (err) {
+				console.log(err);
+				throw { mmessage: err };
+			};
+			message = 'Post  guardado con exito';
+			res.json({ mensaje: message, data: post });
+		});
 	} catch (error) {
 		res.json({ message: error });
 	}
