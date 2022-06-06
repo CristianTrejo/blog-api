@@ -1,10 +1,11 @@
 var express = require('express') //llamamos a Express
 var bodyParser = require('body-parser');
 var app = express()
+const cors = require('cors');
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 const fs = require('fs');
-const db = require('../db.json');
 var randomstring = require("randomstring");
 var moment = require("moment");
 
@@ -23,11 +24,13 @@ app.get('/posts', (req, res) => {
 	}
 });
 
+/* A function that is called when the user makes a GET request to the /posts/:id endpoint. */
 app.get('/posts/:id', (req, res) => {
 	try {
 		/* Reading the file db.json and returning the data in the file. */
 		let rawData = fs.readFileSync('./db.json');
 		let data = JSON.parse(rawData);
+		/* Returning the post with the id that is passed in the url. */
 		res.json({ data: data.posts.find(item => item.id === req.params.id) });
 	} catch (error) {
 		res.json({ message: error });
@@ -38,7 +41,9 @@ app.get('/posts/:id', (req, res) => {
 app.post('/posts', (req, res) => {
 	try {
 		/* Creating a new post object and pushing it to the posts array in the db.json file. */
-		let newData = db;
+		let rawData = fs.readFileSync('./db.json');
+		let data = JSON.parse(rawData);
+		let newData = data;
 		var message = '';
 		let post = {
 			...req.body,
@@ -61,6 +66,7 @@ app.post('/posts', (req, res) => {
 	}
 });
 
+/* Updating the post with the id that is passed in the url. */
 app.put('/posts/:id', (req, res) => {
 	try {
 		/* Reading the file db.json and returning the data in the file. */
@@ -92,6 +98,30 @@ app.put('/posts/:id', (req, res) => {
 			};
 			message = 'Post  guardado con exito';
 			res.json({ mensaje: message, data: post });
+		});
+	} catch (error) {
+		res.json({ message: error });
+	}
+});
+
+
+
+/* Deleting the post with the id that is passed in the url. */
+app.delete('/posts/:id', (req, res) => {
+	try {
+		/* Reading the file db.json and returning the data in the file. */
+		let rawData = fs.readFileSync('./db.json');
+		let data = JSON.parse(rawData);
+		/* Filtering the posts array and returning the posts that do not have the id that is passed in the
+		url. */
+		data.posts = data.posts.filter(item => item.id !== req.params.id);
+		fs.writeFile('./db.json', JSON.stringify(data), 'utf8', (err) => {
+			if (err) {
+				console.log(err);
+				throw { mmessage: err };
+			};
+			message = 'Post  eliminado con exito';
+			res.json({ mensaje: message});
 		});
 	} catch (error) {
 		res.json({ message: error });
